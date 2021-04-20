@@ -56,10 +56,22 @@ client.connect(err => {
       .then((decodedToken) => {
         const tokenEmail = decodedToken.email;
         if (tokenEmail === queryEmail) {
-          bookingsCollection.find({ email: queryEmail })
-            .toArray((errors, documents) => {
-              res.send(documents)
+          admins.find({ email: queryEmail })
+            .toArray((err, docs) => {
+              if (docs.length > 0) {
+                bookingsCollection.find()
+                  .toArray((errors, documents) => {
+                    res.send(documents)
+                  })
+              }
+              else {
+                bookingsCollection.find({ email: queryEmail })
+                  .toArray((errors, documents) => {
+                    res.send(documents)
+                  })
+              }
             })
+
         }
         // ...
       })
@@ -87,7 +99,7 @@ client.connect(err => {
 
   app.get('/addAdmin', (req, res) => {
     const email = req.headers.email;
-    console.log(email);
+    // console.log(email);
     admins.insertOne({ email: email })
       .then(result => {
         res.send(result.insertedCount > 0)
@@ -129,7 +141,7 @@ client.connect(err => {
 
   app.post("/addBooking", (req, res) => {
     const newBooking = req.body;
-    console.log(req.body)
+    // console.log(req.body)
     bookingsCollection.insertOne(newBooking)
       .then(result => {
         res.send(result.insertedCount > 0)
@@ -151,7 +163,7 @@ client.connect(err => {
   // method:DELETE
   app.delete('/deleteService/:serviceId', (req, res) => {
     const serviceId = req.params.serviceId
-    console.log(serviceId)
+    // console.log(serviceId)
     servicesCollection.findOneAndDelete({ _id: ObjectId(`${serviceId}`) })
       .then(result => {
         if (result.value) {
