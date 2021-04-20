@@ -51,21 +51,21 @@ client.connect(err => {
     const idToken = req.headers.authorization;
 
     admin
-        .auth()
-        .verifyIdToken(idToken)
-        .then((decodedToken) => {
-          const tokenEmail = decodedToken.email;
-          if (tokenEmail === queryEmail) {
-            bookingsCollection.find({ email: queryEmail })
-              .toArray((errors, documents) => {
-                res.send(documents)
-              })
-          }
-          // ...
-        })
-        .catch((error) => {
-          // Handle error
-        });
+      .auth()
+      .verifyIdToken(idToken)
+      .then((decodedToken) => {
+        const tokenEmail = decodedToken.email;
+        if (tokenEmail === queryEmail) {
+          bookingsCollection.find({ email: queryEmail })
+            .toArray((errors, documents) => {
+              res.send(documents)
+            })
+        }
+        // ...
+      })
+      .catch((error) => {
+        // Handle error
+      });
   })
 
 
@@ -79,10 +79,10 @@ client.connect(err => {
 
   app.get('/service/:serviceId', (req, res) => {
     const serviceId = req.params.serviceId;
-    servicesCollection.find({ _id: ObjectId(`${serviceId}`)})
-    .toArray((error, documents) => {
-      res.send(documents);
-    })
+    servicesCollection.find({ _id: ObjectId(`${serviceId}`) })
+      .toArray((error, documents) => {
+        res.send(documents);
+      })
   })
 
   app.get('/addAdmin', (req, res) => {
@@ -111,30 +111,20 @@ client.connect(err => {
     const serviceType = req.body.serviceType;
     const description = req.body.description;
     const budget = req.body.budget;
-    const filePath = `${__dirname}/serviceImages/${file.name}`;
 
-    file.mv(filePath, (error) => {
-      if (error) {
-        console.log(error);
-        res.status(500).send({ msg: "failed to upload image in the server" })
-      }
+    const newImage = file.data;
+    const encImage = newImage.toString('base64');
 
-      const newImage = fs.readFileSync(filePath);
-      const encImage = newImage.toString('base64');
+    const image = {
+      contentType: file.mimetype,
+      size: file.size,
+      img: Buffer.from(encImage, 'base64')
+    }
 
-      const image = {
-        contentType: file.mimetype,
-        size: file.size,
-        img: Buffer(encImage, 'base64')
-      }
-
-      servicesCollection.insertOne({ title, serviceType, description, budget, image })
-        .then(result => {
-          fs.remove(filePath, err => {
-            res.send(result.insertedCount > 0)
-          })
-        })
-    })
+    servicesCollection.insertOne({ title, serviceType, description, budget, image })
+      .then(result => {
+        res.send(result.insertedCount > 0)
+      })
   })
 
   app.post("/addBooking", (req, res) => {
@@ -157,7 +147,7 @@ client.connect(err => {
   })
   // method:POST
 
-  
+
   // method:DELETE
   app.delete('/deleteService/:serviceId', (req, res) => {
     const serviceId = req.params.serviceId
